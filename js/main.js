@@ -91,8 +91,8 @@ function _startTicker(symbol) {
   tickerWs = Binance.subscribeTicker(symbol, ({ price, change }) => {
     const priceEl  = document.getElementById('navbar-price');
     const changeEl = document.getElementById('navbar-change');
-    if (priceEl)  priceEl.textContent  = _fmt(price);
-    if (changeEl) {
+    if (priceEl && !isNaN(price))  priceEl.textContent = _fmt(price);
+    if (changeEl && !isNaN(change)) {
       changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
       changeEl.className   = 'ticker-change ' + (change >= 0 ? 'up' : 'down');
     }

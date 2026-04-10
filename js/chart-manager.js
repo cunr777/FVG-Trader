@@ -13,6 +13,13 @@ const ChartManager = (() => {
   let fvgBoxes      = [];     // [{fvg, x1, x2, y1, y2}] for hit-testing
   let showFvgs      = true;   // toggle FVG visibility
   let isLight       = false;  // current theme
+  let _rafPending   = false;  // requestAnimationFrame throttle
+
+  function _scheduleRedraw() {
+    if (_rafPending) return;
+    _rafPending = true;
+    requestAnimationFrame(() => { _rafPending = false; _redraw(); });
+  }
 
   // ── Init ──────────────────────────────────────────────────────
 
@@ -34,8 +41,8 @@ const ChartManager = (() => {
     ro.observe(el);
     _resize(el);
 
-    chart.timeScale().subscribeVisibleLogicalRangeChange(() => _redraw());
-    chart.subscribeCrosshairMove(() => _redraw());
+    chart.timeScale().subscribeVisibleLogicalRangeChange(() => _scheduleRedraw());
+    chart.subscribeCrosshairMove(() => _scheduleRedraw());
 
     // Hover hit-testing on chart container
     el.addEventListener('mousemove', (e) => {
@@ -47,7 +54,7 @@ const ChartManager = (() => {
       if (next !== hoveredFvg) {
         hoveredFvg = next;
         el.style.cursor = next ? 'crosshair' : 'default';
-        _redraw();
+        _scheduleRedraw();
       }
     });
     el.addEventListener('mouseleave', () => {

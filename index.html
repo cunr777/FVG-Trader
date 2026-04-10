@@ -39,15 +39,36 @@
       </div>
     </nav>
 
+    <!-- Watchlist toggle tab (hangs off right edge of sidebar) -->
+    <button id="wl-toggle" onclick="toggleWatchlist()" title="Watchlist ein/ausblenden" style="
+      position:fixed;
+      top:50%;
+      left:220px;
+      transform:translateY(-50%);
+      z-index:20;
+      width:16px;
+      height:48px;
+      border:1px solid var(--border);
+      border-left:none;
+      border-radius:0 var(--radius) var(--radius) 0;
+      background:var(--bg-secondary);
+      color:var(--text-muted);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      transition:left 0.2s ease, background 0.15s;
+    " id="wl-toggle">
+      <svg id="wl-toggle-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+
     <!-- Watchlist -->
     <aside class="sidebar-left">
       <div class="sidebar-header">
         <span class="sidebar-title">Watchlist</span>
-        <button class="btn-icon" id="wl-toggle" title="Watchlist ein/ausblenden" onclick="toggleWatchlist()">
-          <svg id="wl-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
       </div>
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -124,15 +145,20 @@
     }
 
     function toggleWatchlist() {
-      const layout = document.querySelector('.app-layout');
-      const icon   = document.getElementById('wl-toggle-icon');
+      const layout  = document.querySelector('.app-layout');
+      const icon    = document.getElementById('wl-toggle-icon');
+      const btn     = document.getElementById('wl-toggle');
       const sidebar = document.querySelector('.sidebar-left');
       const collapsed = layout.classList.toggle('wl-collapsed');
       sidebar.classList.toggle('collapsed', collapsed);
-      // Flip arrow direction
-      icon.innerHTML = collapsed
-        ? '<polyline points="9 18 15 12 9 6"/>'
-        : '<polyline points="15 18 9 12 15 6"/>';
+      // Pfeil-Richtung & Button-Position
+      if (collapsed) {
+        icon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
+        btn.style.left = '0px';
+      } else {
+        icon.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
+        btn.style.left = '220px';
+      }
       // Resize chart after transition
       setTimeout(() => window.dispatchEvent(new Event('resize')), 220);
     }

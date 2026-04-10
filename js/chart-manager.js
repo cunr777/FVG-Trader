@@ -279,58 +279,50 @@ const ChartManager = (() => {
 
     ctx.save();
 
-    // TP zone (green)
-    ctx.globalAlpha = alpha * 0.38;
+    // ── TP zone fill (green) ──────────────────────────────────
+    ctx.globalAlpha = alpha * 0.22;
     ctx.fillStyle   = '#26a69a';
     ctx.fillRect(xStart, tpTop, boxW, tpH);
 
-    // SL zone (red)
+    // ── SL zone fill (red) ───────────────────────────────────
     ctx.fillStyle   = '#ef5350';
     ctx.fillRect(xStart, slTop, boxW, slH);
-    ctx.globalAlpha = 1;
 
-    // TP border
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = '#26a69a';
-    ctx.lineWidth   = 1.5;
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(xStart, yTP);
-    ctx.lineTo(xR, yTP);
-    ctx.stroke();
-
-    // SL border
-    ctx.strokeStyle = '#ef5350';
-    ctx.beginPath();
-    ctx.moveTo(xStart, ySL);
-    ctx.lineTo(xR, ySL);
-    ctx.stroke();
-
-    // Entry line (dashed white)
-    ctx.strokeStyle = '#d1d4dc';
-    ctx.setLineDash([5, 3]);
+    // ── Entry line (solid, separates TP and SL) ───────────────
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.strokeStyle = isLight ? '#888' : '#d1d4dc';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([4, 3]);
     ctx.beginPath();
     ctx.moveTo(xStart, yEntry);
     ctx.lineTo(xR, yEntry);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Left edge bar
-    ctx.globalAlpha = alpha * 0.9;
+    // ── TP outer line (top of TP zone) ───────────────────────
+    ctx.globalAlpha = alpha * 0.7;
+    ctx.strokeStyle = '#26a69a';
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.moveTo(xStart, yTP);
+    ctx.lineTo(xR, yTP);
+    ctx.stroke();
+
+    // ── SL outer line (bottom of SL zone) ────────────────────
+    ctx.strokeStyle = '#ef5350';
+    ctx.beginPath();
+    ctx.moveTo(xStart, ySL);
+    ctx.lineTo(xR, ySL);
+    ctx.stroke();
+
+    // ── Left edge bar (full height, colored) ─────────────────
+    ctx.globalAlpha = alpha;
     ctx.strokeStyle = isBull ? '#26a69a' : '#ef5350';
     ctx.lineWidth   = 2;
     ctx.beginPath();
     ctx.moveTo(xStart, Math.min(yTP, ySL));
     ctx.lineTo(xStart, Math.max(yTP, ySL));
     ctx.stroke();
-
-    // FVG gap highlight (subtle inner zone)
-    ctx.globalAlpha = alpha * 0.2;
-    ctx.fillStyle   = isBull ? '#26a69a' : '#ef5350';
-    ctx.fillRect(xStart,
-      Math.min(_priceY(fvg.gapTop), _priceY(fvg.gapBot)),
-      boxW,
-      Math.abs(_priceY(fvg.gapTop) - _priceY(fvg.gapBot)));
 
     // Store box bounds for hover hit-testing
     fvgBoxes.push({ fvg, x1: xStart, x2: xR, y1: Math.min(yTP, ySL), y2: Math.max(yTP, ySL) });

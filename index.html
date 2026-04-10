@@ -151,16 +151,21 @@
       const sidebar = document.querySelector('.sidebar-left');
       const collapsed = layout.classList.toggle('wl-collapsed');
       sidebar.classList.toggle('collapsed', collapsed);
-      // Pfeil-Richtung & Button-Position
-      if (collapsed) {
-        icon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
-        btn.style.left = '0px';
-      } else {
-        icon.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
-        btn.style.left = '220px';
+
+      // Pfeil-Richtung (Button-Position läuft via CSS-Transition)
+      icon.innerHTML = collapsed
+        ? '<polyline points="9 18 15 12 9 6"/>'
+        : '<polyline points="15 18 9 12 15 6"/>';
+      btn.style.left = collapsed ? '0px' : '220px';
+
+      // Kontinuierlich resizen während der gesamten Animation (650ms)
+      const duration = 650;
+      const start    = performance.now();
+      function tick(now) {
+        window.dispatchEvent(new Event('resize'));
+        if (now - start < duration) requestAnimationFrame(tick);
       }
-      // Resize chart after transition
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 700);
+      requestAnimationFrame(tick);
     }
   </script>
   <script>

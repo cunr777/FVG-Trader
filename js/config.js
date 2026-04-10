@@ -1,5 +1,8 @@
 // ─── App Config ───────────────────────────────────────────────
 const CONFIG = {
+  // Binance Affiliate — trage hier deinen Ref-Code ein (z.B. 'A1B2C3D4')
+  BINANCE_REF_CODE: 'DEIN_CODE',
+
   // Binance API
   BINANCE_BASE: 'https://api.binance.com/api/v3',
   BINANCE_WS:   'wss://stream.binance.com:9443/ws',

@@ -351,7 +351,13 @@
         </ul>
       </div>
 
-      <div class="disclaimer">
+      <!-- Affiliate Bar -->
+    <div class="affiliate-bar" style="border-radius:var(--radius-lg);margin-top:8px">
+      📊 Kursdaten powered by <a id="aff-link" href="#" target="_blank" rel="noopener">Binance</a>
+      &nbsp;·&nbsp; Noch kein Konto? <a id="aff-link2" href="#" target="_blank" rel="noopener">Jetzt registrieren →</a>
+    </div>
+
+    <div class="disclaimer">
         FVG Trader ist ein privates Analyse-Tool. Alle angezeigten Daten stammen von der Binance API.<br>
         Die Nutzung erfolgt auf eigene Verantwortung. Keine Haftung für finanzielle Verluste.
       </div>
@@ -359,6 +365,16 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const code = CONFIG.BINANCE_REF_CODE;
+      const url  = code && code !== 'DEIN_CODE'
+        ? `https://www.binance.com/de/register?ref=${code}`
+        : 'https://www.binance.com/de/register';
+      document.querySelectorAll('#aff-link, #aff-link2').forEach(a => a.href = url);
+    });
+  </script>
   <script>
     function toggleTheme() {
       const body    = document.body;

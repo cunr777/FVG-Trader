@@ -120,6 +120,12 @@
 
   </div>
 
+  <!-- Affiliate Bar -->
+  <div class="affiliate-bar">
+    📊 Kursdaten powered by <a id="aff-link" href="#" target="_blank" rel="noopener">Binance</a>
+    &nbsp;·&nbsp; Noch kein Konto? <a id="aff-link2" href="#" target="_blank" rel="noopener">Jetzt registrieren →</a>
+  </div>
+
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
   <script src="js/config.js"></script>
   <script src="js/binance.js"></script>
@@ -127,6 +133,16 @@
   <script src="js/chart-manager.js"></script>
   <script src="js/watchlist.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // Affiliate links
+    document.addEventListener('DOMContentLoaded', () => {
+      const code = CONFIG.BINANCE_REF_CODE;
+      const url  = code && code !== 'DEIN_CODE'
+        ? `https://www.binance.com/de/register?ref=${code}`
+        : 'https://www.binance.com/de/register';
+      document.querySelectorAll('#aff-link, #aff-link2').forEach(a => a.href = url);
+    });
+  </script>
   <script>
     function toggleTheme() {
       const body    = document.body;

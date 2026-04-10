@@ -116,7 +116,12 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width 0.2s ease;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.35s cubic-bezier(0.4,0,0.2,1),
+              border-color 0.4s ease;
+}
+.sidebar-left.collapsed {
+  opacity: 0;
 }
 .sidebar-left.collapsed {
   width: 0;

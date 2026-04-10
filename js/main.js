@@ -62,6 +62,19 @@ async function _loadSymbol(symbol) {
   const lbl = document.getElementById('navbar-sym-label');
   if (lbl) lbl.textContent = `${base}/USDT`;
 
+  // Fetch initial price + change immediately via REST
+  try {
+    const ticker = await Binance.getTicker(symbol);
+    const priceEl  = document.getElementById('navbar-price');
+    const changeEl = document.getElementById('navbar-change');
+    if (priceEl && ticker.lastPrice)  priceEl.textContent = _fmt(parseFloat(ticker.lastPrice));
+    if (changeEl && ticker.priceChangePercent != null) {
+      const ch = parseFloat(ticker.priceChangePercent);
+      changeEl.textContent = (ch >= 0 ? '+' : '') + ch.toFixed(2) + '%';
+      changeEl.className   = 'ticker-change ' + (ch >= 0 ? 'up' : 'down');
+    }
+  } catch(_) {}
+
   // Reset markers for fresh render
   ChartManager.resetMarkers();
 

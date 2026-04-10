@@ -183,7 +183,7 @@ const ChartManager = (() => {
     fvgBoxes = [];
     for (const fvg of resolved)  _drawTradeBox(fvg, true,  false);
     for (const fvg of active)    _drawTradeBox(fvg, false, true);
-    for (const fvg of notFilled) _drawFvgZone(fvg);
+    // notFilled: keine Zone zeichnen — nur aktive/abgeschlossene Trades anzeigen
   }
 
   // ── Coordinate Helpers ────────────────────────────────────────
@@ -256,12 +256,9 @@ const ChartManager = (() => {
     const ySL     = _priceY(fvg.sl);
     const yTP     = _priceY(fvg.tp);
 
-    const xL      = _timeX(fvg.time);
-    // Active trades extend to right edge; resolved trades end after fill candle
-    const fillEnd = isActive
-      ? _rightEdge()
-      : (fvg.fillTime ? _timeX(fvg.fillTime) + 40 : _rightEdge());
-    const xR      = Math.min(fillEnd, _rightEdge());
+    // Box beginnt am Entry-Zeitpunkt (fillTime), nicht an der Gap-Entstehung
+    const xL      = fvg.fillTime ? _timeX(fvg.fillTime) : _timeX(fvg.time);
+    const xR      = _rightEdge();
 
     if (yEntry < -1000 || xL < -1000) return;
     if (xL > canvas.width) return;
@@ -313,15 +310,6 @@ const ChartManager = (() => {
     ctx.beginPath();
     ctx.moveTo(xStart, ySL);
     ctx.lineTo(xR, ySL);
-    ctx.stroke();
-
-    // ── Left edge bar (full height, colored) ─────────────────
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = isBull ? '#26a69a' : '#ef5350';
-    ctx.lineWidth   = 2;
-    ctx.beginPath();
-    ctx.moveTo(xStart, Math.min(yTP, ySL));
-    ctx.lineTo(xStart, Math.max(yTP, ySL));
     ctx.stroke();
 
     // Store box bounds for hover hit-testing

@@ -10,20 +10,22 @@ const Binance = (() => {
     return res.json();
   }
 
-  // Get klines (OHLCV) — paginiert, lädt bis zu 2 Jahre rückwirkend
+  // Get klines (OHLCV) — paginiert, bis zu 2 Jahre
   async function getKlines(symbol, interval) {
-    const allCandles = [];
-    const limit      = 1000;
-    const now        = Date.now();
-    // 2 Jahre in ms (genügt für alle gängigen Altcoins)
+    const allCandles  = [];
+    const limit       = 1000;
+    const now         = Date.now();
     const maxLookback = 2 * 365 * 24 * 60 * 60 * 1000;
-    let endTime = now;
+    const cutoff      = now - maxLookback;
+    let   endTime     = now;
+    let   pages       = 0;
+    const maxPages    = 20; // Sicherheitsgrenze
 
-    while (true) {
-      const startTime = endTime - maxLookback;
+    while (pages < maxPages) {
       const url = `${BASE}/klines?symbol=${symbol}&interval=${interval}&endTime=${endTime}&limit=${limit}`;
-      const raw = await fetchJSON(url);
-      if (!raw.length) break;
+      let raw;
+      try { raw = await fetchJSON(url); } catch(e) { break; }
+      if (!raw || !raw.length) break;
 
       const candles = raw.map(k => ({
         time:   Math.floor(k[0] / 1000),
@@ -33,18 +35,17 @@ const Binance = (() => {
         close:  parseFloat(k[4]),
         volume: parseFloat(k[5]),
       }));
-
       allCandles.unshift(...candles);
+      pages++;
 
-      // Wenn weniger als limit zurück, sind wir am Anfang
       if (raw.length < limit) break;
-      // Nächste Seite: endTime = openTime der ältesten Kerze - 1ms
       endTime = raw[0][0] - 1;
-      // Stopp wenn wir weiter als 2 Jahre zurück sind
-      if (endTime < now - maxLookback) break;
+      if (endTime < cutoff) break;
+
+      // Kurze Pause um Rate-Limit zu vermeiden
+      await new Promise(r => setTimeout(r, 80));
     }
 
-    // Duplikate entfernen & sortieren
     const seen = new Set();
     return allCandles
       .filter(c => { if (seen.has(c.time)) return false; seen.add(c.time); return true; })
@@ -102,11 +103,10 @@ const Binance = (() => {
   function subscribeTicker(symbol, onUpdate) {
     const ws = new WebSocket(`${CONFIG.BINANCE_WS}/${symbol.toLowerCase()}@miniTicker`);
     ws.onmessage = (e) => {
-      const d = JSON.parse(e.data);
-      onUpdate({
-        price:  parseFloat(d.c),
-        change: parseFloat(d.P),
-      });
+      const d      = JSON.parse(e.data);
+      const price  = parseFloat(d.c);
+      const change = parseFloat(d.P);
+      if (!isNaN(price) && !isNaN(change)) onUpdate({ price, change });
     };
     return ws;
   }

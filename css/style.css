@@ -117,11 +117,11 @@ body {
   flex-direction: column;
   overflow: hidden;
   transition: width 0.65s cubic-bezier(0.4,0,0.2,1),
-              opacity 0.55s cubic-bezier(0.4,0,0.2,1),
               border-color 0.65s ease;
 }
-.sidebar-left.collapsed {
-  opacity: 0;
+.sidebar-left > * {
+  min-width: 220px;  /* Inhalt bleibt auf fester Breite — Container clippt */
+  flex-shrink: 0;
 }
 .sidebar-left.collapsed {
   width: 0;

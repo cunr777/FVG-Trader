@@ -26,21 +26,24 @@ const FVG = (() => {
         const gapPct = (gapSize / midPrice) * 100;
 
         if (gapPct >= CONFIG.FVG_MIN_PCT) {
+          const mid = (gapTop + gapBot) / 2;  // Entry = Mitte der Gap
+          const riskPerUnit = mid - gapBot;   // SL-Abstand = Mitte bis Unterkante
           fvgs.push({
             type:      'bull',
             gapTop,
             gapBot,
+            gapMid:    mid,
             gapPct:    +gapPct.toFixed(3),
             gapSize,
-            time:      c1.time,     // FVG created at impulse candle
+            time:      c1.time,
             candleIdx: i - 1,
             // Trade levels
-            entry:     gapTop,      // Entry at top of FVG
-            sl:        gapBot,      // SL at bottom of FVG
-            tp:        gapTop + (gapSize * CONFIG.RR_RATIO),
+            entry:     mid,                              // Entry an der Gap-Mitte
+            sl:        gapBot,                          // SL = Unterkante
+            tp:        mid + riskPerUnit * CONFIG.RR_RATIO,
             filled:    false,
             fillTime:  null,
-            result:    'pending',   // 'win' | 'loss' | 'pending'
+            result:    'pending',
             resultPct: 0,
           });
         }
@@ -55,18 +58,21 @@ const FVG = (() => {
         const gapPct = (gapSize / midPrice) * 100;
 
         if (gapPct >= CONFIG.FVG_MIN_PCT) {
+          const mid = (gapTop + gapBot) / 2;  // Entry = Mitte der Gap
+          const riskPerUnit = gapTop - mid;   // SL-Abstand = Mitte bis Oberkante
           fvgs.push({
             type:      'bear',
             gapTop,
             gapBot,
+            gapMid:    mid,
             gapPct:    +gapPct.toFixed(3),
             gapSize,
             time:      c1.time,
             candleIdx: i - 1,
             // Trade levels
-            entry:     gapBot,      // Entry at bottom of FVG
-            sl:        gapTop,      // SL at top of FVG
-            tp:        gapBot - (gapSize * CONFIG.RR_RATIO),
+            entry:     mid,                              // Entry an der Gap-Mitte
+            sl:        gapTop,                          // SL = Oberkante
+            tp:        mid - riskPerUnit * CONFIG.RR_RATIO,
             filled:    false,
             fillTime:  null,
             result:    'pending',
@@ -92,8 +98,8 @@ const FVG = (() => {
         const c = candles[i];
 
         if (fvg.type === 'bull') {
-          // Entry: price dips into gapTop area (low touches entry zone)
-          if (!fvg.filled && c.low <= fvg.entry && c.high >= fvg.gapBot) {
+          // Entry: Preis erreicht die Gap-Mitte von oben (Low berührt Mid)
+          if (!fvg.filled && c.low <= fvg.entry) {
             fvg.filled   = true;
             fvg.fillTime = c.time;
           }
@@ -114,8 +120,8 @@ const FVG = (() => {
         }
 
         if (fvg.type === 'bear') {
-          // Entry: price bounces into gapBot area
-          if (!fvg.filled && c.high >= fvg.entry && c.low <= fvg.gapTop) {
+          // Entry: Preis erreicht die Gap-Mitte von unten (High berührt Mid)
+          if (!fvg.filled && c.high >= fvg.entry) {
             fvg.filled   = true;
             fvg.fillTime = c.time;
           }

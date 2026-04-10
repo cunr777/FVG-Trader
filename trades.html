@@ -339,7 +339,7 @@
       <div class="trades-header">
         <div>
           <div class="trades-title">💡 Trade Ideas</div>
-          <div class="trades-sub">Aktuelle FVG-Setups aus deiner Watchlist — nur Gaps ≥ 0,5% · SL = Unterkante · 1:3 RR</div>
+          <div class="trades-sub">FVG-Setups — Entry an Gap-Mitte · Bull SL = Unterkante · Bear SL = Oberkante · 1:3 RR</div>
         </div>
         <div class="trades-controls">
           <button class="ctrl-tf-btn active" data-tf="1h">1H</button>
@@ -462,8 +462,8 @@
             if (fvg.candleIdx + 1 >= candles.length - 1) continue;
 
             // Preis liegt innerhalb der Gap (Live-Check)
-            // Mindestens 0.1% Abstand zur Kante damit Grenzwert-Treffer vermieden werden
-            const margin = fvg.gapSize * 0.05; // 5% der Gap-Größe als Puffer
+            // Entry = Gap-Mitte → zeige Setup wenn Preis in der Gap ist (nähert sich der Mitte)
+            const margin = fvg.gapSize * 0.05; // 5% Puffer an den Kanten
             const inGap = currentPrice > fvg.gapBot + margin && currentPrice < fvg.gapTop - margin;
             if (inGap) {
               allResults.push({
@@ -567,10 +567,17 @@
       const slZoneH = 100 * (1 / (CONFIG.RR_RATIO + 1));
 
       // Aktueller Preis-Marker (immer anzeigen, da Preis in Gap ist)
+      // Bull:  oben=TP(0%), Entry bei tpZoneH%, unten=SL(100%)
+      //        priceDiff>0 → preis über Entry → in TP-Zone (< tpZoneH%)
+      // Bear:  oben=SL(0%), Entry bei slZoneH%, unten=TP(100%)
+      //        priceDiff>0 → preis unter Entry → in TP-Zone (> slZoneH%)
+      //        priceDiff<0 → preis über Entry → in SL-Zone (< slZoneH%)
       const priceMarkerPct = r.currentPrice
         ? (isBull
             ? tpZoneH - (priceDiff / tpPct) * tpZoneH
-            : tpZoneH + (Math.abs(priceDiff) / slPct) * slZoneH)
+            : priceDiff >= 0
+                ? slZoneH + (priceDiff / tpPct) * tpZoneH
+                : slZoneH + (priceDiff / slPct) * slZoneH)
         : null;
 
       return `

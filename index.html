@@ -29,6 +29,7 @@
         <a href="performance.html" class="nav-link">📊 Performance</a>
         <a href="strategy.html"    class="nav-link">📖 Strategie</a>
       </nav>
+      <a id="aff-nav-link" href="#" target="_blank" rel="noopener" class="aff-nav-btn">🎁 Binance-Konto eröffnen</a>
       <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Hell/Dunkel wechseln">
         <span id="theme-icon">☀️</span><span id="theme-label"> Hell</span>
       </button>
@@ -133,7 +134,7 @@
       const url  = code && code !== 'DEIN_CODE'
         ? `https://www.binance.com/de/register?ref=${code}`
         : 'https://www.binance.com/de/register';
-      document.querySelectorAll('#aff-link, #aff-link2').forEach(a => a.href = url);
+      document.querySelectorAll('#aff-link, #aff-link2, #aff-nav-link').forEach(a => a.href = url);
     });
   </script>
   <script>

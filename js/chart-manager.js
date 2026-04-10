@@ -9,7 +9,10 @@ const ChartManager = (() => {
   let currentTf     = '1h';
   let allCandles    = [];
   let allFvgs       = [];
-  let showLabels    = false;   // toggled by toolbar button
+  let hoveredFvg    = null;   // FVG the mouse is currently over
+  let fvgBoxes      = [];     // [{fvg, x1, x2, y1, y2}] for hit-testing
+  let showFvgs      = true;   // toggle FVG visibility
+  let isLight       = false;  // current theme
 
   // ── Init ──────────────────────────────────────────────────────
 
@@ -17,48 +20,9 @@ const ChartManager = (() => {
     const el = document.getElementById(containerId);
     if (!el) return;
 
-    chart = LightweightCharts.createChart(el, {
-      width:  el.clientWidth,
-      height: el.clientHeight,
-      layout: {
-        background: { type: 'solid', color: '#0d1117' },
-        textColor:  '#8b949e',
-        fontSize:   12,
-        fontFamily: 'Inter, sans-serif',
-      },
-      grid: {
-        vertLines: { color: '#161b22' },
-        horzLines: { color: '#161b22' },
-      },
-      crosshair: {
-        mode: LightweightCharts.CrosshairMode.Normal,
-        vertLine: { color: '#30363d', width: 1, labelBackgroundColor: '#21262d' },
-        horzLine: { color: '#30363d', width: 1, labelBackgroundColor: '#21262d' },
-      },
-      rightPriceScale: {
-        borderColor:  '#21262d',
-        textColor:    '#8b949e',
-        scaleMargins: { top: 0.08, bottom: 0.08 },
-      },
-      timeScale: {
-        borderColor:    '#21262d',
-        timeVisible:    true,
-        secondsVisible: false,
-        barSpacing:     8,
-        rightOffset:    8,
-      },
-      handleScroll:  { mouseWheel: true, pressedMouseMove: true },
-      handleScale:   { mouseWheel: true, pinch: true },
-    });
+    chart = LightweightCharts.createChart(el, _chartOptions(false));
 
-    candleSeries = chart.addCandlestickSeries({
-      upColor:         '#26a69a',
-      downColor:       '#ef5350',
-      borderUpColor:   '#26a69a',
-      borderDownColor: '#ef5350',
-      wickUpColor:     '#26a69a',
-      wickDownColor:   '#ef5350',
-    });
+    candleSeries = chart.addCandlestickSeries(_candleOptions(false));
 
     canvas = document.createElement('canvas');
     canvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:3';
@@ -72,6 +36,84 @@ const ChartManager = (() => {
 
     chart.timeScale().subscribeVisibleLogicalRangeChange(() => _redraw());
     chart.subscribeCrosshairMove(() => _redraw());
+
+    // Hover hit-testing on chart container
+    el.addEventListener('mousemove', (e) => {
+      const rect = el.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const hit = fvgBoxes.find(b => mx >= b.x1 && mx <= b.x2 && my >= b.y1 && my <= b.y2);
+      const next = hit ? hit.fvg : null;
+      if (next !== hoveredFvg) {
+        hoveredFvg = next;
+        el.style.cursor = next ? 'crosshair' : 'default';
+        _redraw();
+      }
+    });
+    el.addEventListener('mouseleave', () => {
+      if (hoveredFvg) { hoveredFvg = null; _redraw(); }
+    });
+  }
+
+  // ── Theme Helpers ─────────────────────────────────────────────
+
+  function _chartOptions(light) {
+    return {
+      width:  0,
+      height: 0,
+      layout: {
+        background: { type: 'solid', color: light ? '#f6f8fa' : '#0d1117' },
+        textColor:  light ? '#57606a' : '#8b949e',
+        fontSize:   12,
+        fontFamily: 'Inter, sans-serif',
+      },
+      grid: {
+        vertLines: { color: light ? '#eaeef2' : '#161b22' },
+        horzLines: { color: light ? '#eaeef2' : '#161b22' },
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+        vertLine: { color: light ? '#d0d7de' : '#30363d', width: 1, labelBackgroundColor: light ? '#eaeef2' : '#21262d' },
+        horzLine: { color: light ? '#d0d7de' : '#30363d', width: 1, labelBackgroundColor: light ? '#eaeef2' : '#21262d' },
+      },
+      rightPriceScale: {
+        borderColor:  light ? '#d0d7de' : '#21262d',
+        textColor:    light ? '#57606a' : '#8b949e',
+        scaleMargins: { top: 0.08, bottom: 0.08 },
+      },
+      timeScale: {
+        borderColor:    light ? '#d0d7de' : '#21262d',
+        timeVisible:    true,
+        secondsVisible: false,
+        barSpacing:     8,
+        rightOffset:    8,
+      },
+      handleScroll:  { mouseWheel: true, pressedMouseMove: true },
+      handleScale:   { mouseWheel: true, pinch: true },
+    };
+  }
+
+  function _candleOptions(light) {
+    // Always true green/red regardless of theme
+    return {
+      upColor:         '#26a69a',
+      downColor:       '#ef5350',
+      borderUpColor:   '#26a69a',
+      borderDownColor: '#ef5350',
+      wickUpColor:     '#26a69a',
+      wickDownColor:   '#ef5350',
+    };
+  }
+
+  function setTheme(light) {
+    isLight = light;
+    if (!chart) return;
+    const opts = _chartOptions(light);
+    // Remove size from applyOptions (managed by resize)
+    delete opts.width;
+    delete opts.height;
+    chart.applyOptions(opts);
+    _redraw();
   }
 
   function _resize(el) {
@@ -119,11 +161,16 @@ const ChartManager = (() => {
   // ── Redraw ────────────────────────────────────────────────────
 
   function _redraw() {
-    if (!ctx || !canvas || !chart || !allFvgs.length) {
+    if (!ctx || !canvas || !chart) {
       if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!showFvgs || !allFvgs.length) {
+      fvgBoxes = [];
+      return;
+    }
 
     // 3 Zustände:
     // 1) resolved  — abgeschlossen (win/loss)      → dimmed Trade-Box
@@ -133,6 +180,7 @@ const ChartManager = (() => {
     const active    = allFvgs.filter(f => f.filled && f.result === 'pending');
     const notFilled = allFvgs.filter(f => !f.filled);
 
+    fvgBoxes = [];
     for (const fvg of resolved)  _drawTradeBox(fvg, true,  false);
     for (const fvg of active)    _drawTradeBox(fvg, false, true);
     for (const fvg of notFilled) _drawFvgZone(fvg);
@@ -172,14 +220,14 @@ const ChartManager = (() => {
 
     ctx.save();
 
-    // Zone fill
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle   = isBull ? '#26a69a' : '#ef5350';
+    // Zone fill — Blue for all FVG zones
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle   = '#2196f3';
     ctx.fillRect(xStart, Math.min(yTop, yBot), Math.max(0, xR - xStart), h);
     ctx.globalAlpha = 1;
 
     // Top border (solid)
-    ctx.strokeStyle = isBull ? 'rgba(38,166,154,0.8)' : 'rgba(239,83,80,0.8)';
+    ctx.strokeStyle = 'rgba(33,150,243,0.9)';
     ctx.lineWidth   = 1;
     ctx.setLineDash([]);
     ctx.beginPath();
@@ -284,27 +332,31 @@ const ChartManager = (() => {
       boxW,
       Math.abs(_priceY(fvg.gapTop) - _priceY(fvg.gapBot)));
 
-    // ── Labels — only visible when showLabels is enabled ──────
-    if (showLabels) {
+    // Store box bounds for hover hit-testing
+    fvgBoxes.push({ fvg, x1: xStart, x2: xR, y1: Math.min(yTP, ySL), y2: Math.max(yTP, ySL) });
+
+    // ── TV-Style Labels — only when this trade is hovered ─────────
+    if (hoveredFvg !== fvg) { ctx.restore(); return; }
+    {
       const labelX = xR + 4;
       ctx.globalAlpha = alpha;
 
+      // TP: show price + %
       const tpPct = isBull
         ? +((fvg.tp - fvg.entry) / fvg.entry * 100).toFixed(2)
         : +((fvg.entry - fvg.tp) / fvg.entry * 100).toFixed(2);
-      _drawLabel(labelX, yTP, '+' + tpPct + '%', '#26a69a', fvg.result === 'win');
+      _drawTVLabel(labelX, yTP, _fmt(fvg.tp), '+' + tpPct + '%', '#26a69a', fvg.result === 'win');
 
+      // SL: show price + %
       const slPct = isBull
         ? +((fvg.entry - fvg.sl) / fvg.entry * 100).toFixed(2)
         : +((fvg.sl - fvg.entry) / fvg.entry * 100).toFixed(2);
-      _drawLabel(labelX, ySL, '-' + slPct + '%', '#ef5350', fvg.result === 'loss');
+      _drawTVLabel(labelX, ySL, _fmt(fvg.sl), '-' + slPct + '%', '#ef5350', fvg.result === 'loss');
 
-      ctx.font      = 'bold 11px Inter, sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'left';
-      ctx.fillText('Entry', labelX, yEntry + 4);
+      // Entry: white label
+      _drawTVLabel(labelX, yEntry, _fmt(fvg.entry), 'Entry', '#d1d4dc', false);
 
-      // Result badge (center of zone)
+      // Result badge (center of winning/losing zone)
       if (fvg.result === 'win' || fvg.result === 'loss') {
         const isWin    = fvg.result === 'win';
         const badgeY   = isWin ? (tpTop + yEntry) / 2 : (slTop + yEntry) / 2;
@@ -314,11 +366,11 @@ const ChartManager = (() => {
         const badgeCol = isWin ? '#26a69a' : '#ef5350';
         const badgeX   = xStart + boxW / 2;
 
-        ctx.font      = 'bold 13px Inter, sans-serif';
+        ctx.font      = 'bold 12px Inter, sans-serif';
         ctx.textAlign = 'center';
         const tw = ctx.measureText(badgeTxt).width;
 
-        ctx.globalAlpha = alpha * 0.6;
+        ctx.globalAlpha = alpha * 0.65;
         ctx.fillStyle   = badgeCol;
         _roundRect(badgeX - tw / 2 - 10, badgeY - 11, tw + 20, 20, 5);
         ctx.fill();
@@ -332,7 +384,51 @@ const ChartManager = (() => {
     ctx.restore();
   }
 
-  // ── Label badge helper ────────────────────────────────────────
+  // ── Price format helper ─────────────────────────────────────
+
+  function _fmt(p) {
+    if (!p) return '—';
+    if (p >= 1000) return p.toFixed(2);
+    if (p >= 1)    return p.toFixed(4);
+    return p.toFixed(6);
+  }
+
+  // ── TV-Style Label: price left, % right ──────────────────────
+  // Renders a pill with two parts like TradingView's position tool
+
+  function _drawTVLabel(x, y, priceText, pctText, color, active) {
+    ctx.save();
+    ctx.font      = 'bold 11px Inter, sans-serif';
+    ctx.textAlign = 'left';
+
+    const priceTw = ctx.measureText(priceText).width;
+    const pctTw   = ctx.measureText(pctText).width;
+    const pad     = 5;
+    const h       = 18;
+    const gap     = 6;
+    const totalW  = pad + priceTw + gap + pctTw + pad;
+    const bx      = x;
+    const by      = y - h / 2;
+
+    // Background pill
+    ctx.globalAlpha = active ? 0.95 : (color === '#d1d4dc' ? 0.5 : 0.3);
+    ctx.fillStyle   = color;
+    _roundRect(bx, by, totalW, h, 4);
+    ctx.fill();
+
+    // Price text (white)
+    ctx.globalAlpha = 1;
+    ctx.fillStyle   = '#ffffff';
+    ctx.fillText(priceText, bx + pad, y + 4);
+
+    // Pct text (slightly dimmer)
+    ctx.globalAlpha = 0.8;
+    ctx.fillText(pctText, bx + pad + priceTw + gap, y + 4);
+
+    ctx.restore();
+  }
+
+  // ── Label badge helper (legacy, kept for safety) ──────────────
 
   function _drawLabel(x, y, text, color, active) {
     ctx.save();
@@ -434,5 +530,5 @@ const ChartManager = (() => {
     if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  return { init, loadChart, getCurrentData, resetMarkers, toggleLabels };
+  return { init, loadChart, getCurrentData, resetMarkers, toggleLabels, setTheme };
 })();

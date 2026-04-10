@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FVG Trader — Trade Ideas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .trades-layout {
+      display: grid;
+      grid-template-rows: 44px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .trades-body {
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--bg-primary);
+    }
+    .trades-body::-webkit-scrollbar { width: 5px; }
+    .trades-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Header row */
+    .trades-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .trades-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .trades-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Controls */
+    .trades-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+    .ctrl-tf-btn {
+      padding: 5px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.15s;
+    }
+    .ctrl-tf-btn:hover  { background: var(--bg-hover); color: var(--text-primary); }
+    .ctrl-tf-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    .btn-refresh {
+      padding: 5px 14px;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.15s;
+    }
+    .btn-refresh:hover    { opacity: 0.85; }
+    .btn-refresh:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Progress bar */
+    .scan-progress {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .progress-bar-wrap {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .filter-label { color: var(--text-muted); }
+    .filter-btn {
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.15s;
+    }
+    .filter-btn:hover  { background: var(--bg-hover); color: var(--text-primary); }
+    .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    .result-count {
+      margin-left: auto;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+    }
+
+    /* Trade card — TV Long/Short Tool visual style */
+    .trade-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .trade-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .trade-card.bull { border-left: 3px solid var(--green); }
+    .trade-card.bear { border-left: 3px solid var(--red); }
+
+    /* Card visual bar (mini trade-tool preview) */
+    .card-visual {
+      height: 72px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-primary);
+    }
+    .cv-tp {
+      position: absolute;
+      left: 0; right: 0;
+      background: rgba(38,166,154,0.25);
+      border-top: 1px solid rgba(38,166,154,0.7);
+    }
+    .cv-sl {
+      position: absolute;
+      left: 0; right: 0;
+      background: rgba(239,83,80,0.25);
+      border-bottom: 1px solid rgba(239,83,80,0.7);
+    }
+    .cv-entry {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: #d1d4dc;
+    }
+    .cv-label-tp {
+      position: absolute;
+      right: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--green);
+    }
+    .cv-label-sl {
+      position: absolute;
+      right: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--red);
+    }
+    .cv-label-entry {
+      position: absolute;
+      left: 6px;
+      font-size: 9px;
+      color: #d1d4dc;
+    }
+
+    /* Card body */
+    .card-body { padding: 10px 12px 12px; }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .card-symbol {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .card-symbol span {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+    .card-badges { display: flex; gap: 5px; align-items: center; }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge.bull { background: var(--green-dim); color: var(--green); border: 1px solid rgba(38,166,154,0.3); }
+    .badge.bear { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(239,83,80,0.3); }
+    .badge.tf   { background: var(--bg-tertiary); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .card-levels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .level-box {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 8px;
+      text-align: center;
+    }
+    .level-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .level-value { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .level-box.entry-box { border-color: rgba(209,212,220,0.3); }
+    .level-box.tp-box    { border-color: rgba(38,166,154,0.4); }
+    .level-box.sl-box    { border-color: rgba(239,83,80,0.4); }
+    .level-value.tp { color: var(--green); }
+    .level-value.sl { color: var(--red); }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .card-gap { }
+    .card-rr  { font-weight: 600; color: var(--accent); }
+
+    /* Triggered card highlight */
+    .trade-card.triggered {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 1px rgba(240,185,11,0.25), 0 4px 16px rgba(240,185,11,0.08);
+    }
+    .trade-card.triggered:hover {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 1px rgba(240,185,11,0.4), 0 6px 20px rgba(240,185,11,0.12);
+    }
+    .triggered-banner {
+      background: rgba(240,185,11,0.12);
+      border-bottom: 1px solid rgba(240,185,11,0.25);
+      color: var(--yellow);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 5px 12px;
+      letter-spacing: 0.3px;
+    }
+
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .empty-state svg { width: 48px; height: 48px; opacity: 0.25; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="trades-layout">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+          <polyline points="16 7 22 7 22 13"/>
+        </svg>
+        FVG Trader
+      </div>
+      <nav class="navbar-nav">
+        <a href="index.html"       class="nav-link">📈 Chart</a>
+        <a href="trades.html"       class="nav-link active">💡 Trade Ideas</a>
+        <a href="performance.html" class="nav-link">📊 Performance</a>
+      </nav>
+    </nav>
+
+    <!-- Body -->
+    <div class="trades-body">
+
+      <!-- Header -->
+      <div class="trades-header">
+        <div>
+          <div class="trades-title">💡 Trade Ideas</div>
+          <div class="trades-sub">Aktuelle FVG-Setups aus deiner Watchlist — nur Gaps ≥ 0,5% · SL = Unterkante · 1:3 RR</div>
+        </div>
+        <div class="trades-controls">
+          <button class="ctrl-tf-btn active" data-tf="1h">1H</button>
+          <button class="ctrl-tf-btn"        data-tf="4h">4H</button>
+          <button class="btn-refresh" id="btn-refresh" onclick="startScan()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Aktualisieren
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="scan-progress" id="scan-progress">
+        <span id="progress-text">Scanne Watchlist…</span>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar" id="filter-bar" style="display:none">
+        <span class="filter-label">Filter:</span>
+        <button class="filter-btn active" data-filter="all"        onclick="setFilter('all')">Alle</button>
+        <button class="filter-btn"        data-filter="bull"       onclick="setFilter('bull')">▲ Bullish</button>
+        <button class="filter-btn"        data-filter="bear"       onclick="setFilter('bear')">▼ Bearish</button>
+        <span class="result-count" id="result-count"></span>
+      </div>
+
+      <!-- Cards -->
+      <div class="cards-grid" id="cards-grid">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <p>Klicke auf <strong>Aktualisieren</strong> um<br>FVG-Setups aus deiner Watchlist zu laden.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/binance.js"></script>
+  <script src="js/fvg.js"></script>
+  <script>
+    let allResults = [];
+    let currentTf  = '1h';
+    let currentFilter = 'all';
+    const LATE_ENTRY_PCT = 0.2; // max % nach Entry der noch ok ist
+
+    // ── TF Buttons ────────────────────────────────────────────
+    document.querySelectorAll('.ctrl-tf-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ctrl-tf-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTf = btn.dataset.tf;
+        startScan();
+      });
+    });
+
+    // ── Watchlist load ────────────────────────────────────────
+    function getWatchlist() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('fvg_watchlist'));
+        return Array.isArray(saved) && saved.length ? saved : CONFIG.DEFAULT_WATCHLIST;
+      } catch {
+        return CONFIG.DEFAULT_WATCHLIST;
+      }
+    }
+
+    // ── Scan ──────────────────────────────────────────────────
+    async function startScan() {
+      const btn       = document.getElementById('btn-refresh');
+      const progress  = document.getElementById('scan-progress');
+      const fill      = document.getElementById('progress-fill');
+      const progText  = document.getElementById('progress-text');
+      const grid      = document.getElementById('cards-grid');
+      const filterBar = document.getElementById('filter-bar');
+
+      btn.disabled = true;
+      progress.style.display = 'flex';
+      filterBar.style.display = 'none';
+      grid.innerHTML = '';
+      allResults = [];
+
+      const watchlist = getWatchlist();
+      const tfCfg     = CONFIG.TIMEFRAMES[currentTf];
+      const total     = watchlist.length;
+
+      for (let i = 0; i < total; i++) {
+        const sym = watchlist[i];
+        progText.textContent = `Scanne ${sym.replace('USDT','')} (${i+1}/${total})…`;
+        fill.style.width     = ((i / total) * 100) + '%';
+
+        try {
+          const candles  = await Binance.getKlines(sym, tfCfg.interval, 200);
+          const fvgs     = FVG.detect(candles);
+          // Kein evaluate() — wir prüfen nur ob der aktuelle Preis in einer frischen Gap liegt.
+          // evaluate() würde FVGs als 'loss' markieren wenn die letzte (noch laufende) Kerze
+          // den SL kurz berührt, obwohl der Close-Preis noch in der Gap ist.
+
+          // Live-Preis per getPrice holen (nicht Kerzenschluss — der kann veraltet sein)
+          let currentPrice;
+          try {
+            const tick = await Binance.getPrice(sym);
+            currentPrice = parseFloat(tick.price) || candles[candles.length - 1].close;
+          } catch {
+            currentPrice = candles[candles.length - 1].close;
+          }
+
+          for (const fvg of fvgs) {
+            // Max. 60 Kerzen alt
+            if (fvg.candleIdx < candles.length - 60) continue;
+            // Die 3. Kerze (c2) muss vollständig geschlossen sein.
+            // candleIdx = Impulskerze (i-1), c2 = candleIdx+1.
+            // Wenn c2 die letzte (noch laufende) Kerze ist → überspringen.
+            if (fvg.candleIdx + 1 >= candles.length - 1) continue;
+
+            // Preis liegt innerhalb der Gap (Live-Check)
+            // Mindestens 0.1% Abstand zur Kante damit Grenzwert-Treffer vermieden werden
+            const margin = fvg.gapSize * 0.05; // 5% der Gap-Größe als Puffer
+            const inGap = currentPrice > fvg.gapBot + margin && currentPrice < fvg.gapTop - margin;
+            if (inGap) {
+              allResults.push({
+                symbol: sym, tf: currentTf, currentPrice,
+                status: 'in_gap',
+                ...fvg,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('Skip', sym, e.message);
+        }
+      }
+
+      fill.style.width = '100%';
+      setTimeout(() => { progress.style.display = 'none'; }, 400);
+
+      // Sort: bullish zuerst, dann nach Gap-Größe
+      allResults.sort((a, b) => b.gapPct - a.gapPct);
+
+      filterBar.style.display = allResults.length ? 'flex' : 'none';
+      btn.disabled = false;
+      renderCards();
+    }
+
+    // ── Filter ────────────────────────────────────────────────
+    function setFilter(f) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.filter === f);
+      });
+      renderCards();
+    }
+
+    // ── Render ────────────────────────────────────────────────
+    function renderCards() {
+      const grid = document.getElementById('cards-grid');
+      const countEl = document.getElementById('result-count');
+
+      let items = allResults;
+      if (currentFilter === 'bull') items = items.filter(r => r.type === 'bull');
+      else if (currentFilter === 'bear') items = items.filter(r => r.type === 'bear');
+
+      if (countEl) countEl.textContent = `${items.length} Setup${items.length !== 1 ? 's' : ''}`;
+
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <p>Kein Coin aus der Watchlist befindet sich aktuell in einer FVG.<br>
+            Versuche einen anderen Zeitrahmen oder füge mehr Coins zur Watchlist hinzu.</p>
+          </div>`;
+        return;
+      }
+
+      // Trennzeile Bullish / Bearish
+      const bull = items.filter(r => r.type === 'bull');
+      const bear = items.filter(r => r.type === 'bear');
+
+      let html = '';
+      if (bull.length) {
+        html += `<div style="grid-column:1/-1;font-size:11px;font-weight:600;color:#26a69a;display:flex;align-items:center;gap:8px">
+          <span style="letter-spacing:.6px;text-transform:uppercase">📈 Bullish — Preis in Gap</span>
+          <span style="flex:1;height:1px;background:var(--border)"></span>
+        </div>`;
+        html += bull.map(r => _cardHTML(r)).join('');
+      }
+      if (bear.length) {
+        html += `<div style="grid-column:1/-1;font-size:11px;font-weight:600;color:#ef5350;display:flex;align-items:center;gap:8px;${bull.length ? 'margin-top:8px' : ''}">
+          <span style="letter-spacing:.6px;text-transform:uppercase">📉 Bearish — Preis in Gap</span>
+          <span style="flex:1;height:1px;background:var(--border)"></span>
+        </div>`;
+        html += bear.map(r => _cardHTML(r)).join('');
+      }
+      grid.innerHTML = html;
+    }
+
+    function _cardHTML(r) {
+      const isBull      = r.type === 'bull';
+      const base        = r.symbol.replace('USDT','');
+      const isTriggered = r.status === 'in_gap';
+
+      const tpPct = isBull
+        ? +((r.tp - r.entry) / r.entry * 100).toFixed(2)
+        : +((r.entry - r.tp) / r.entry * 100).toFixed(2);
+      const slPct = isBull
+        ? +((r.entry - r.sl) / r.entry * 100).toFixed(2)
+        : +((r.sl - r.entry) / r.entry * 100).toFixed(2);
+
+      // Aktueller Preis relativ zum Entry (wie weit schon drin)
+      const priceDiff   = r.currentPrice
+        ? (isBull
+            ? +((r.currentPrice - r.entry) / r.entry * 100).toFixed(2)
+            : +((r.entry - r.currentPrice) / r.entry * 100).toFixed(2))
+        : null;
+
+      // Mini visual proportional zu RR
+      const tpZoneH = 100 * (CONFIG.RR_RATIO / (CONFIG.RR_RATIO + 1));
+      const slZoneH = 100 * (1 / (CONFIG.RR_RATIO + 1));
+
+      // Aktueller Preis-Marker (immer anzeigen, da Preis in Gap ist)
+      const priceMarkerPct = r.currentPrice
+        ? (isBull
+            ? tpZoneH - (priceDiff / tpPct) * tpZoneH
+            : tpZoneH + (Math.abs(priceDiff) / slPct) * slZoneH)
+        : null;
+
+      return `
+        <div class="trade-card ${isBull ? 'bull' : 'bear'}${isTriggered ? ' triggered' : ''}"
+             onclick="openChart('${r.symbol}', '${r.tf}')">
+
+          <div class="triggered-banner">📍 Preis aktuell in der Gap</div>
+
+          <div class="card-visual">
+            ${isBull ? `
+              <div class="cv-tp" style="top:0;height:${tpZoneH}%">
+                <span class="cv-label-tp" style="top:4px">+${tpPct}%</span>
+              </div>
+              <div class="cv-sl" style="top:${tpZoneH}%;height:${slZoneH}%">
+                <span class="cv-label-sl" style="bottom:3px">−${slPct}%</span>
+              </div>
+              <div class="cv-entry" style="top:${tpZoneH}%">
+                <span class="cv-label-entry" style="top:2px">Entry ${_fmtP(r.entry)}</span>
+              </div>
+            ` : `
+              <div class="cv-sl" style="top:0;height:${slZoneH}%">
+                <span class="cv-label-sl" style="top:4px">−${slPct}%</span>
+              </div>
+              <div class="cv-tp" style="top:${slZoneH}%;height:${tpZoneH}%">
+                <span class="cv-label-tp" style="bottom:3px">+${tpPct}%</span>
+              </div>
+              <div class="cv-entry" style="top:${slZoneH}%">
+                <span class="cv-label-entry" style="top:2px">Entry ${_fmtP(r.entry)}</span>
+              </div>
+            `}
+            ${priceMarkerPct !== null ? `
+              <div style="position:absolute;left:0;right:0;top:${Math.max(2,Math.min(96,priceMarkerPct))}%;height:1px;background:#f0b90b;z-index:4">
+                <span style="position:absolute;right:6px;top:-8px;font-size:9px;font-weight:700;color:#f0b90b">◄ ${_fmtP(r.currentPrice)}</span>
+              </div>` : ''}
+          </div>
+
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-symbol">${base}<span>/USDT</span></div>
+              <div class="card-badges">
+                <span class="badge ${isBull ? 'bull' : 'bear'}">${isBull ? '▲ Long' : '▼ Short'}</span>
+                <span class="badge tf">${r.tf.toUpperCase()}</span>
+              </div>
+            </div>
+            <div class="card-levels">
+              <div class="level-box tp-box">
+                <div class="level-label">TP</div>
+                <div class="level-value tp">${_fmtP(r.tp)}</div>
+              </div>
+              <div class="level-box entry-box">
+                <div class="level-label">Entry</div>
+                <div class="level-value">${_fmtP(r.entry)}</div>
+              </div>
+              <div class="level-box sl-box">
+                <div class="level-label">SL</div>
+                <div class="level-value sl">${_fmtP(r.sl)}</div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span class="card-gap">Gap: <strong>${r.gapPct}%</strong></span>
+              ${r.currentPrice ? `<span style="font-size:11px;color:var(--text-muted)">Aktuell: <strong style="color:var(--text-primary)">${_fmtP(r.currentPrice)}</strong></span>` : ''}
+              <span class="card-rr">1:${CONFIG.RR_RATIO} RR</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function openChart(symbol, tf) {
+      // Pass symbol+tf to chart via sessionStorage
+      sessionStorage.setItem('goto_symbol', symbol);
+      sessionStorage.setItem('goto_tf', tf);
+      window.location.href = 'index.html';
+    }
+
+    function _fmtP(p) {
+      if (!p) return '—';
+      if (p >= 1000) return p.toFixed(2);
+      if (p >= 1)    return p.toFixed(4);
+      return p.toFixed(6);
+    }
+
+    // Auto-scan on load + alle 60s wiederholen (Live-Preis bleibt aktuell)
+    let _autoRefreshTimer = null;
+    window.addEventListener('DOMContentLoaded', () => {
+      startScan();
+      _autoRefreshTimer = setInterval(() => startScan(), 60_000);
+    });
+  </script>
+</body>
+</html>

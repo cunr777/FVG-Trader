@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FVG Trader — Performance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="perf-layout">
+
+    <!-- ── Navbar ───────────────────────────────────────────── -->
+    <nav class="navbar">
+      <div class="navbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+          <polyline points="16 7 22 7 22 13"/>
+        </svg>
+        FVG Trader
+      </div>
+      <nav class="navbar-nav">
+        <a href="index.html"       class="nav-link">📈 Chart</a>
+        <a href="trades.html"       class="nav-link">💡 Trade Ideas</a>
+        <a href="performance.html" class="nav-link active">📊 Performance</a>
+      </nav>
+    </nav>
+
+    <!-- ── Content ──────────────────────────────────────────── -->
+    <div class="perf-content">
+
+      <h2 style="font-size:18px;font-weight:700">📊 FVG Backtest Performance</h2>
+      <p style="color:var(--text-muted);font-size:12px;margin-top:-12px">
+        Berechnet wie viel % du gemacht hättest, wenn du alle FVG-Trades mitgenommen hättest.<br>
+        Nur Gaps ≥ 0,5% · SL an Unterkante des FVG · TP = 1:3 RR
+      </p>
+
+      <!-- Controls -->
+      <div class="perf-controls">
+        <div class="ctrl-group">
+          <label class="ctrl-label">Altcoin Symbol</label>
+          <input
+            type="text"
+            id="perf-symbol"
+            class="ctrl-input"
+            placeholder="z.B. ETH oder ETHUSDT"
+            style="width:160px"
+          />
+        </div>
+
+        <div class="ctrl-group">
+          <label class="ctrl-label">Zeitrahmen</label>
+          <select id="perf-tf" class="ctrl-select">
+            <option value="1h">1H</option>
+            <option value="4h">4H</option>
+          </select>
+        </div>
+
+        <div class="ctrl-group">
+          <label class="ctrl-label">Von</label>
+          <input type="date" id="perf-start" class="ctrl-input" />
+        </div>
+
+        <div class="ctrl-group">
+          <label class="ctrl-label">Bis</label>
+          <input type="date" id="perf-end" class="ctrl-input" />
+        </div>
+
+        <button id="btn-calc" class="btn-primary">Berechnen</button>
+      </div>
+
+      <!-- Loading -->
+      <div id="perf-loading" style="display:none;align-items:center;gap:12px;padding:16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg)">
+        <div class="spinner"></div>
+        <span style="color:var(--text-muted)">Lade Kerzendaten und berechne Trades…</span>
+      </div>
+
+      <!-- Info bar -->
+      <div id="perf-info" style="font-size:11px;color:var(--text-muted);padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);display:none"></div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Gesamtrendite</div>
+          <div class="kpi-value neutral" id="kpi-return">—</div>
+          <div class="kpi-sub">Compound, alle Trades</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Win-Rate</div>
+          <div class="kpi-value neutral" id="kpi-winrate">—</div>
+          <div class="kpi-sub">Wins / (Wins + Losses)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Gesamt Trades</div>
+          <div class="kpi-value neutral" id="kpi-trades">—</div>
+          <div class="kpi-sub">FVGs die getriggert wurden</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Wins</div>
+          <div class="kpi-value green" id="kpi-wins">—</div>
+          <div class="kpi-sub">TP erreicht</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Losses</div>
+          <div class="kpi-value red" id="kpi-losses">—</div>
+          <div class="kpi-sub">SL ausgelöst</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Offen</div>
+          <div class="kpi-value neutral" id="kpi-pending">—</div>
+          <div class="kpi-sub">Noch kein Ergebnis</div>
+        </div>
+      </div>
+
+      <!-- Equity Curve -->
+      <div class="equity-card">
+        <div class="card-title">Equity Kurve</div>
+        <div style="position:relative;height:240px">
+          <canvas id="equityChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Trade Table -->
+      <div class="trades-card">
+        <div class="card-title">Alle Trades</div>
+        <div class="table-wrap">
+          <table class="trade-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Symbol</th>
+                <th>Typ</th>
+                <th>Einstieg (Zeit)</th>
+                <th>Entry</th>
+                <th>SL</th>
+                <th>TP</th>
+                <th>Ergebnis</th>
+              </tr>
+            </thead>
+            <tbody id="trade-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px">
+                  Noch keine Berechnung. Symbol eingeben und "Berechnen" klicken.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /perf-content -->
+  </div><!-- /perf-layout -->
+
+  <!-- Chart.js for equity curve -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- App scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/binance.js"></script>
+  <script src="js/fvg.js"></script>
+  <script src="js/performance.js"></script>
+
+  <script>
+    // perf-info hidden initially, shown after first calc
+    document.getElementById('perf-info').style.display = 'none';
+  </script>
+</body>
+</html>

@@ -43,6 +43,7 @@ const FVG = (() => {
             tp:        mid + riskPerUnit * CONFIG.RR_RATIO,
             filled:    false,
             fillTime:  null,
+            closeTime: null,
             result:    'pending',
             resultPct: 0,
           });
@@ -107,12 +108,14 @@ const FVG = (() => {
             // TP hit
             if (c.high >= fvg.tp) {
               fvg.result    = 'win';
+              fvg.closeTime = c.time;
               fvg.resultPct = +((fvg.tp - fvg.entry) / fvg.entry * 100).toFixed(2);
               break;
             }
             // SL hit
             if (c.low <= fvg.sl) {
               fvg.result    = 'loss';
+              fvg.closeTime = c.time;
               fvg.resultPct = +((fvg.sl - fvg.entry) / fvg.entry * 100).toFixed(2);
               break;
             }
@@ -129,12 +132,14 @@ const FVG = (() => {
             // TP hit
             if (c.low <= fvg.tp) {
               fvg.result    = 'win';
+              fvg.closeTime = c.time;
               fvg.resultPct = +((fvg.entry - fvg.tp) / fvg.entry * 100).toFixed(2);
               break;
             }
             // SL hit
             if (c.high >= fvg.sl) {
               fvg.result    = 'loss';
+              fvg.closeTime = c.time;
               fvg.resultPct = +((fvg.entry - fvg.sl) / fvg.entry * 100).toFixed(2);
               break;
             }

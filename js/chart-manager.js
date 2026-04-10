@@ -256,9 +256,11 @@ const ChartManager = (() => {
     const ySL     = _priceY(fvg.sl);
     const yTP     = _priceY(fvg.tp);
 
-    // Box beginnt am Entry-Zeitpunkt (fillTime), nicht an der Gap-Entstehung
-    const xL      = fvg.fillTime ? _timeX(fvg.fillTime) : _timeX(fvg.time);
-    const xR      = _rightEdge();
+    // Box beginnt am Entry (fillTime), endet am Close (closeTime) oder rechter Rand
+    const xL = fvg.fillTime ? _timeX(fvg.fillTime) : _timeX(fvg.time);
+    const xR = (fvg.closeTime && !isActive)
+      ? _timeX(fvg.closeTime)
+      : _rightEdge();
 
     if (yEntry < -1000 || xL < -1000) return;
     if (xL > canvas.width) return;

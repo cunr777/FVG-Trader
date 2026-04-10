@@ -24,6 +24,9 @@
         <a href="index.html"       class="nav-link">📈 Chart</a>
         <a href="performance.html" class="nav-link active">📊 Performance</a>
       </nav>
+      <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Hell/Dunkel wechseln">
+        <span id="theme-icon">☀️</span><span id="theme-label"> Hell</span>
+      </button>
     </nav>
 
     <!-- ── Content ──────────────────────────────────────────── -->
@@ -161,8 +164,28 @@
   <script src="js/performance.js"></script>
 
   <script>
-    // perf-info hidden initially, shown after first calc
     document.getElementById('perf-info').style.display = 'none';
+
+    function toggleTheme() {
+      const body    = document.body;
+      const icon    = document.getElementById('theme-icon');
+      const label   = document.getElementById('theme-label');
+      const isLight = body.classList.toggle('light');
+      localStorage.setItem('fvg_theme', isLight ? 'light' : 'dark');
+      icon.textContent  = isLight ? '🌙' : '☀️';
+      label.textContent = isLight ? ' Dunkel' : ' Hell';
+    }
+
+    // Restore saved theme
+    (function() {
+      if (localStorage.getItem('fvg_theme') === 'light') {
+        document.body.classList.add('light');
+        const icon  = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+        if (icon)  icon.textContent  = '🌙';
+        if (label) label.textContent = ' Dunkel';
+      }
+    })();
   </script>
 </body>
 </html>

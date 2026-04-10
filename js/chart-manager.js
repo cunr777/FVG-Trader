@@ -303,22 +303,6 @@ const ChartManager = (() => {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // ── TP outer line (top of TP zone) ───────────────────────
-    ctx.globalAlpha = alpha * 0.7;
-    ctx.strokeStyle = '#26a69a';
-    ctx.lineWidth   = 1;
-    ctx.beginPath();
-    ctx.moveTo(xStart, yTP);
-    ctx.lineTo(xR, yTP);
-    ctx.stroke();
-
-    // ── SL outer line (bottom of SL zone) ────────────────────
-    ctx.strokeStyle = '#ef5350';
-    ctx.beginPath();
-    ctx.moveTo(xStart, ySL);
-    ctx.lineTo(xR, ySL);
-    ctx.stroke();
-
     // Store box bounds for hover hit-testing
     fvgBoxes.push({ fvg, x1: xStart, x2: xR, y1: Math.min(yTP, ySL), y2: Math.max(yTP, ySL) });
 

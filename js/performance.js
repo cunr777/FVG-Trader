@@ -71,7 +71,7 @@ async function runCalc() {
 }
 
 function _renderKPIs(perf, symbol, tf, start, end, candleCount) {
-  const { totalReturn, wins, losses, winRate, pending, expired } = perf;
+  const { totalReturn, wins, losses, winRate, pending } = perf;
 
   _kpi('kpi-return',  (totalReturn >= 0 ? '+' : '') + totalReturn + '%',
                        totalReturn >= 0 ? 'green' : 'red');
@@ -81,7 +81,6 @@ function _renderKPIs(perf, symbol, tf, start, end, candleCount) {
   _kpi('kpi-wins',    wins, 'green');
   _kpi('kpi-losses',  losses, 'red');
   _kpi('kpi-pending', pending, 'neutral');
-  _kpi('kpi-expired', expired, expired > 0 ? 'yellow' : 'neutral');
 
   const infoEl = document.getElementById('perf-info');
   if (infoEl) {

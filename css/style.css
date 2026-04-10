@@ -555,7 +555,6 @@ body.light .ctrl-input[type="date"]::-webkit-calendar-picker-indicator { filter:
 .kpi-value.green { color: var(--green); }
 .kpi-value.red { color: var(--red); }
 .kpi-value.neutral { color: var(--text-primary); }
-.kpi-value.yellow  { color: var(--yellow); }
 .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
 /* Equity Chart */

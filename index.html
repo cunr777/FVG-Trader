@@ -30,7 +30,7 @@
         <a href="performance.html" class="nav-link">📊 Performance</a>
       </nav>
       <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Hell/Dunkel wechseln">
-        <span id="theme-icon">☀️</span> Hell
+        <span id="theme-icon">☀️</span><span id="theme-label"> Hell</span>
       </button>
       <div class="navbar-ticker">
         <span style="color:var(--text-muted);font-size:11px" id="navbar-sym-label">—</span>
@@ -108,17 +108,17 @@
   <script src="js/main.js"></script>
   <script>
     function toggleTheme() {
-      const body   = document.body;
-      const btn    = document.getElementById('theme-toggle');
-      const icon   = document.getElementById('theme-icon');
+      const body    = document.body;
+      const icon    = document.getElementById('theme-icon');
+      const label   = document.getElementById('theme-label');
       const isLight = body.classList.toggle('light');
       localStorage.setItem('fvg_theme', isLight ? 'light' : 'dark');
       if (isLight) {
-        icon.textContent = '\uD83C\uDF19'; // 🌙
-        btn.childNodes[1].textContent = ' Dunkel';
+        icon.textContent  = '\uD83C\uDF19'; // 🌙
+        label.textContent = ' Dunkel';
       } else {
-        icon.textContent = '\u2600\uFE0F'; // ☀️
-        btn.childNodes[1].textContent = ' Hell';
+        icon.textContent  = '\u2600\uFE0F'; // ☀️
+        label.textContent = ' Hell';
       }
       if (typeof ChartManager !== 'undefined') ChartManager.setTheme(isLight);
     }
@@ -143,13 +143,11 @@
       const saved = localStorage.getItem('fvg_theme');
       if (saved === 'light') {
         document.body.classList.add('light');
-        const btn  = document.getElementById('theme-toggle');
-        const icon = document.getElementById('theme-icon');
-        if (btn && icon) {
-          icon.textContent = '\uD83C\uDF19';
-          btn.childNodes[1].textContent = ' Dunkel';
-        }
-        // ChartManager is loaded, but chart not yet initialized — setTheme called on first load
+        const icon  = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+        if (icon)  icon.textContent  = '\uD83C\uDF19';
+        if (label) label.textContent = ' Dunkel';
+        // Chart theme applied in main.js DOMContentLoaded after ChartManager.init()
       }
     })();
   </script>

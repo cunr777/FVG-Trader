@@ -165,7 +165,9 @@ function _renderTradeTable(trades, symbol) {
     return;
   }
 
-  tbody.innerHTML = trades.map((t, i) => {
+  const sorted = [...trades].sort((a, b) => (b.fillTime || 0) - (a.fillTime || 0));
+
+  tbody.innerHTML = sorted.map((t, i) => {
     const entry  = _fmtP(t.entry);
     const sl     = _fmtP(t.sl);
     const tp     = _fmtP(t.tp);

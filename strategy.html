@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FVG Trader — Strategie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    html, body { height: auto !important; overflow: visible !important; }
+    body { overflow-y: auto !important; }
+
+    .strat-layout {
+      display: grid;
+      grid-template-rows: 44px auto;
+      min-height: 100vh;
+    }
+
+    .strat-content {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .strat-hero {
+      text-align: center;
+      padding: 48px 24px 32px;
+    }
+    .strat-hero h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .strat-hero p {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .strat-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+    .strat-section h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .strat-section h2 .icon {
+      font-size: 18px;
+    }
+    .strat-section p {
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+    .strat-section p:last-child { margin-bottom: 0; }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--accent);
+    }
+    .step-body strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .step-body span {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* Level pills */
+    .level-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .level-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .level-pill {
+      flex-shrink: 0;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 60px;
+      text-align: center;
+    }
+    .pill-entry { background: rgba(209,212,220,0.12); color: #d1d4dc; border: 1px solid rgba(209,212,220,0.25); }
+    .pill-tp    { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+    .pill-sl    { background: var(--red-dim);   color: var(--red);   border: 1px solid var(--red); }
+    .level-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    @media (max-width: 520px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-item {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .info-item strong {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .info-item span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Warning box */
+    .warning-box {
+      background: rgba(240,185,11,0.07);
+      border: 1px solid rgba(240,185,11,0.35);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+    .warning-box h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .warning-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .warning-list li {
+      list-style: none;
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .warning-list li::before {
+      content: '⚠';
+      color: var(--yellow);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .disclaimer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      padding: 0 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="strat-layout">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+          <polyline points="16 7 22 7 22 13"/>
+        </svg>
+        FVG Trader
+      </div>
+      <nav class="navbar-nav">
+        <a href="index.html"       class="nav-link">📈 Chart</a>
+        <a href="performance.html" class="nav-link">📊 Performance</a>
+        <a href="strategy.html"    class="nav-link active">📖 Strategie</a>
+      </nav>
+      <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Hell/Dunkel wechseln">
+        <span id="theme-icon">☀️</span><span id="theme-label"> Hell</span>
+      </button>
+    </nav>
+
+    <!-- Content -->
+    <div class="strat-content">
+
+      <div class="strat-hero">
+        <h1>📖 Die FVG-Strategie</h1>
+        <p>Fair Value Gaps sind Preislücken, die durch starke impulsive Bewegungen entstehen. Diese Anleitung erklärt, wie der FVG Trader sie erkennt, bewertet und in Trades umsetzt.</p>
+      </div>
+
+      <!-- Was ist ein FVG -->
+      <div class="strat-section">
+        <h2><span class="icon">🔍</span> Was ist ein Fair Value Gap?</h2>
+        <p>Ein Fair Value Gap (FVG) entsteht, wenn eine starke Kerze so groß ist, dass zwischen dem Hoch der vorherigen und dem Tief der nachfolgenden Kerze eine Lücke entsteht — ein Bereich, den der Preis „übersprungen" hat.</p>
+        <p>Der Markt neigt dazu, in diese Lücken zurückzukehren, um sie zu „füllen" — also auszugleichen. Diese Rückkehr wird als potenzielle Einstiegsmöglichkeit genutzt.</p>
+        <p>Dieses Tool erkennt automatisch alle FVGs mit einer Mindestgröße von <strong>0,5 %</strong> und unterscheidet dabei zwischen <span style="color:var(--green)">bullischen</span> (aufwärts) und <span style="color:var(--red)">bärischen</span> (abwärts) Gaps.</p>
+      </div>
+
+      <!-- Wie funktioniert die Strategie -->
+      <div class="strat-section">
+        <h2><span class="icon">⚙️</span> Wie funktioniert die Strategie?</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>FVG erkennen</strong>
+              <span>Drei aufeinanderfolgende Kerzen werden analysiert. Wenn zwischen Kerze 1 (Hoch) und Kerze 3 (Tief) eine Lücke ≥ 0,5 % entsteht, wird ein FVG markiert.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Auf Rückkehr warten</strong>
+              <span>Der Einstieg erfolgt, wenn der Preis den <strong>Mittelpunkt</strong> des Gaps berührt. Nicht an der Kante — sondern genau in der Mitte der Lücke.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Position eröffnen</strong>
+              <span>Beim Berühren des Midpoints wird eine Position eröffnet. Der Entry-Preis ist der Mittelpunkt des FVGs.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>SL & TP setzen</strong>
+              <span>Stop Loss liegt an der gegenüberliegenden Kante des Gaps. Take Profit ergibt sich aus einem <strong>1:3 Risk-Reward-Ratio</strong> — dreifaches Risiko als Gewinnziel.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entry / SL / TP -->
+      <div class="strat-section">
+        <h2><span class="icon">🎯</span> Entry, Stop Loss & Take Profit</h2>
+        <div class="level-row">
+          <div class="level-item">
+            <div class="level-pill pill-entry">Entry</div>
+            <div class="level-desc">Mittelpunkt des FVGs — der Durchschnitt aus Gap-Top und Gap-Bottom.</div>
+          </div>
+          <div class="level-item">
+            <div class="level-pill pill-sl">Stop Loss</div>
+            <div class="level-desc">Gegenüberliegende Kante des Gaps. Bei einem Bullischen FVG = Unterkante, bei einem Bärischen FVG = Oberkante.</div>
+          </div>
+          <div class="level-item">
+            <div class="level-pill pill-tp">Take Profit</div>
+            <div class="level-desc">Dreifaches Risiko vom Entry aus in Gegenrichtung des SL — also ein 1:3 Risk-Reward-Ratio.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter -->
+      <div class="strat-section">
+        <h2><span class="icon">🛠</span> Strategie-Parameter</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <strong>Min. Gap-Größe</strong>
+            <span>≥ 0,5 % des Preises</span>
+          </div>
+          <div class="info-item">
+            <strong>Einstieg</strong>
+            <span>Midpoint des FVGs</span>
+          </div>
+          <div class="info-item">
+            <strong>Stop Loss</strong>
+            <span>Gegenüb. Gap-Kante</span>
+          </div>
+          <div class="info-item">
+            <strong>Risk-Reward</strong>
+            <span>1 : 3</span>
+          </div>
+          <div class="info-item">
+            <strong>Zeitrahmen</strong>
+            <span>1H und 4H</span>
+          </div>
+          <div class="info-item">
+            <strong>Markt</strong>
+            <span>Krypto (Binance USDT-Paare)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipps -->
+      <div class="strat-section">
+        <h2><span class="icon">💡</span> Tipps zur Anwendung</h2>
+        <p>FVGs auf dem <strong>4H-Zeitrahmen</strong> haben in der Regel eine höhere Trefferquote als auf dem 1H, da sie weniger Rauschen enthalten.</p>
+        <p>Achte auf den <strong>übergeordneten Trend</strong> — bullische FVGs in einem Aufwärtstrend performen besser als gegen den Trend.</p>
+        <p>Nutze die <strong>Performance-Seite</strong>, um Backtests für einzelne Coins durchzuführen und zu sehen, wie die Strategie historisch abgeschnitten hätte.</p>
+      </div>
+
+      <!-- Warnung -->
+      <div class="warning-box">
+        <h2>⚠️ Wichtige Hinweise & Risiken</h2>
+        <ul class="warning-list">
+          <li>Diese Strategie ist <strong>kein Garant für Gewinne</strong>. Vergangenheitsdaten lassen keine zuverlässigen Rückschlüsse auf zukünftige Ergebnisse zu.</li>
+          <li>Kryptomärkte sind hochvolatil. Preise können sich schnell und unvorhersehbar bewegen — auch gegen eine scheinbar klare FVG-Struktur.</li>
+          <li>Der Backtest auf der Performance-Seite simuliert ideale Marktbedingungen. In der Realität können Slippage, Spreads und Liquiditätsprobleme das Ergebnis verschlechtern.</li>
+          <li>FVGs werden nicht immer gefüllt. Manche Gaps bleiben offen — besonders nach sehr starken Impulsen in einer Richtung.</li>
+          <li>Dieses Tool dient ausschließlich zu <strong>Bildungs- und Analysezwecken</strong> und stellt keine Finanzberatung dar.</li>
+          <li>Setze niemals mehr ein, als du bereit bist zu verlieren. Verwende ein striktes Risikomanagement und riskiere nie mehr als 1–2 % deines Kapitals pro Trade.</li>
+        </ul>
+      </div>
+
+      <div class="disclaimer">
+        FVG Trader ist ein privates Analyse-Tool. Alle angezeigten Daten stammen von der Binance API.<br>
+        Die Nutzung erfolgt auf eigene Verantwortung. Keine Haftung für finanzielle Verluste.
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const body    = document.body;
+      const icon    = document.getElementById('theme-icon');
+      const label   = document.getElementById('theme-label');
+      const isLight = body.classList.toggle('light');
+      localStorage.setItem('fvg_theme', isLight ? 'light' : 'dark');
+      icon.textContent  = isLight ? '🌙' : '☀️';
+      label.textContent = isLight ? ' Dunkel' : ' Hell';
+    }
+    (function() {
+      if (localStorage.getItem('fvg_theme') === 'light') {
+        document.body.classList.add('light');
+        const icon  = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+        if (icon)  icon.textContent  = '🌙';
+        if (label) label.textContent = ' Dunkel';
+      }
+    })();
+  </script>
+</body>
+</html>

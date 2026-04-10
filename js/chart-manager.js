@@ -153,7 +153,7 @@ const ChartManager = (() => {
       setTimeout(() => _redraw(), 200);
 
       const fvgs = FVG.detect(candles);
-      allFvgs    = FVG.evaluate(fvgs, candles);
+      allFvgs    = FVG.evaluate(fvgs, candles, currentTf);
 
       _redraw();
       _updateStatsBar(allFvgs);

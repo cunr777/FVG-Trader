@@ -49,7 +49,7 @@ async function runCalc() {
     }
 
     const fvgs  = FVG.detect(candles);
-    const evald = FVG.evaluate(fvgs, candles);
+    const evald = FVG.evaluate(fvgs, candles, tf);
 
     // Tag each fvg with symbol
     evald.forEach(f => f.symbol = symbol);
@@ -71,7 +71,7 @@ async function runCalc() {
 }
 
 function _renderKPIs(perf, symbol, tf, start, end, candleCount) {
-  const { totalReturn, wins, losses, winRate, pending } = perf;
+  const { totalReturn, wins, losses, winRate, pending, expired } = perf;
 
   _kpi('kpi-return',  (totalReturn >= 0 ? '+' : '') + totalReturn + '%',
                        totalReturn >= 0 ? 'green' : 'red');
@@ -81,13 +81,14 @@ function _renderKPIs(perf, symbol, tf, start, end, candleCount) {
   _kpi('kpi-wins',    wins, 'green');
   _kpi('kpi-losses',  losses, 'red');
   _kpi('kpi-pending', pending, 'neutral');
+  _kpi('kpi-expired', expired, expired > 0 ? 'yellow' : 'neutral');
 
   const infoEl = document.getElementById('perf-info');
   if (infoEl) {
     infoEl.style.display = 'block';
     infoEl.textContent =
       `${symbol} · ${tf.toUpperCase()} · ${start} → ${end} · ${candleCount} Kerzen · ` +
-      `${wins+losses+pending} FVG-Trades (nur ≥${CONFIG.FVG_MIN_PCT}% Gap, 1:${CONFIG.RR_RATIO} RR)`;
+      `${wins+losses+pending} FVG-Trades (nur ≥${CONFIG.FVG_MIN_PCT}% Gap, 1:${CONFIG.RR_RATIO} RR) · ${expired} abgelaufen`;
   }
 }
 

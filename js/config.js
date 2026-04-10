@@ -13,6 +13,12 @@ const CONFIG = {
   // Risk/Reward ratio
   RR_RATIO: 3,
 
+  // FVG expiry: max candles after creation before a gap is invalidated
+  FVG_EXPIRY_CANDLES: {
+    '1h': 48,   // 2 Tage
+    '4h': 42,   // 7 Tage
+  },
+
   // Timeframes available
   TIMEFRAMES: {
     '1h':  { label: '1H', interval: '1h'  },  // ~2 Jahre (~17.520 Kerzen)

@@ -88,14 +88,26 @@ const FVG = (() => {
 
   /**
    * Evaluate each FVG against subsequent candles.
-   * Sets .filled, .fillTime, .result, .resultPct
+   * Sets .filled, .fillTime, .result, .resultPct, .expired
+   * @param {object[]} fvgs
+   * @param {object[]} candles
+   * @param {string}   [tf]  - timeframe key (e.g. '1h', '4h') for expiry lookup
    */
-  function evaluate(fvgs, candles) {
+  function evaluate(fvgs, candles, tf) {
+    const maxCandles = (tf && CONFIG.FVG_EXPIRY_CANDLES[tf]) || null;
+
     for (const fvg of fvgs) {
+      fvg.expired = false;
       // Only evaluate candles AFTER the FVG was created
       const startIdx = fvg.candleIdx + 1;
 
       for (let i = startIdx; i < candles.length; i++) {
+        // Expiry check: gap not yet filled and time window exceeded
+        if (!fvg.filled && maxCandles !== null && (i - startIdx) >= maxCandles) {
+          fvg.expired = true;
+          fvg.result  = 'expired';
+          break;
+        }
         const c = candles[i];
 
         if (fvg.type === 'bull') {
@@ -157,6 +169,7 @@ const FVG = (() => {
   function calcPerformance(fvgs) {
     let equity = 100;      // start at 100%
     let wins = 0, losses = 0, pending = 0;
+    const expired = fvgs.filter(f => f.expired).length;
     const equityCurve = [{ label: 'Start', value: 100 }];
 
     const filled = fvgs.filter(f => f.filled);
@@ -187,7 +200,7 @@ const FVG = (() => {
       ? +((wins / (wins + losses)) * 100).toFixed(1)
       : 0;
 
-    return { equity: +equity.toFixed(2), totalReturn, wins, losses, pending, winRate, equityCurve, trades: filled };
+    return { equity: +equity.toFixed(2), totalReturn, wins, losses, pending, expired, winRate, equityCurve, trades: filled };
   }
 
   return { detect, evaluate, calcPerformance };

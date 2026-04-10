@@ -284,7 +284,7 @@ const ChartManager = (() => {
     ctx.save();
 
     // ── TP zone fill (green) ──────────────────────────────────
-    ctx.globalAlpha = alpha * 0.22;
+    ctx.globalAlpha = alpha * 0.40;
     ctx.fillStyle   = '#26a69a';
     ctx.fillRect(xStart, tpTop, boxW, tpH);
 

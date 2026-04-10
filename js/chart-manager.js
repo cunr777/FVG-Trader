@@ -255,7 +255,7 @@ const ChartManager = (() => {
 
   function _drawTradeBox(fvg, isOld, isActive) {
     const isBull  = fvg.type === 'bull';
-    const alpha   = isOld ? 0.65 : 1.0;
+    const alpha   = 1.0;  // gleiche Sichtbarkeit für alte und aktive Trades
 
     const yEntry  = _priceY(fvg.entry);
     const ySL     = _priceY(fvg.sl);

@@ -42,6 +42,7 @@ body.light {
 }
 
 html, body { height: 100%; overflow: hidden; }
+body.perf-page { overflow-y: auto; height: auto; }
 
 body {
   font-family: var(--font);
@@ -476,21 +477,16 @@ body {
 /* ─── Performance Page ──────────────────────────────────────── */
 .perf-layout {
   display: grid;
-  grid-template-rows: 44px 1fr;
-  height: 100vh;
-  overflow: hidden;
+  grid-template-rows: 44px auto;
+  min-height: 100vh;
 }
 
 .perf-content {
-  overflow-y: auto;
-  min-height: 0;        /* Grid-Fix: ohne das scrollt der Inhalt nicht */
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-.perf-content::-webkit-scrollbar { width: 6px; }
-.perf-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 .perf-controls {
   display: flex;
@@ -600,7 +596,7 @@ body.light .ctrl-input[type="date"]::-webkit-calendar-picker-indicator { filter:
 .trade-result.pending { color: var(--yellow); }
 
 /* Scrollable table wrapper */
-.table-wrap { overflow-x: auto; overflow-y: auto; max-height: 400px; }
+.table-wrap { overflow-x: auto; overflow-y: visible; max-height: none; }
 .table-wrap::-webkit-scrollbar { height: 4px; width: 4px; }
 .table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 

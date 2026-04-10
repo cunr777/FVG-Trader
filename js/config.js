@@ -15,8 +15,8 @@ const CONFIG = {
 
   // Timeframes available
   TIMEFRAMES: {
-    '1h':  { label: '1H', interval: '1h',  limit: 300 },
-    '4h':  { label: '4H', interval: '4h',  limit: 300 },
+    '1h':  { label: '1H', interval: '1h'  },  // ~2 Jahre (~17.520 Kerzen)
+    '4h':  { label: '4H', interval: '4h'  },  // ~2 Jahre (~4.380 Kerzen)
   },
 
   // Default watchlist (altcoins only)

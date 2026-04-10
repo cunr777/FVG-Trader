@@ -10,19 +10,45 @@ const Binance = (() => {
     return res.json();
   }
 
-  // Get klines (OHLCV)
-  async function getKlines(symbol, interval, limit = 300) {
-    const key = `${symbol}_${interval}_${limit}`;
-    const url = `${BASE}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-    const raw = await fetchJSON(url);
-    return raw.map(k => ({
-      time:   Math.floor(k[0] / 1000), // unix seconds
-      open:   parseFloat(k[1]),
-      high:   parseFloat(k[2]),
-      low:    parseFloat(k[3]),
-      close:  parseFloat(k[4]),
-      volume: parseFloat(k[5]),
-    }));
+  // Get klines (OHLCV) — paginiert, lädt bis zu 2 Jahre rückwirkend
+  async function getKlines(symbol, interval) {
+    const allCandles = [];
+    const limit      = 1000;
+    const now        = Date.now();
+    // 2 Jahre in ms (genügt für alle gängigen Altcoins)
+    const maxLookback = 2 * 365 * 24 * 60 * 60 * 1000;
+    let endTime = now;
+
+    while (true) {
+      const startTime = endTime - maxLookback;
+      const url = `${BASE}/klines?symbol=${symbol}&interval=${interval}&endTime=${endTime}&limit=${limit}`;
+      const raw = await fetchJSON(url);
+      if (!raw.length) break;
+
+      const candles = raw.map(k => ({
+        time:   Math.floor(k[0] / 1000),
+        open:   parseFloat(k[1]),
+        high:   parseFloat(k[2]),
+        low:    parseFloat(k[3]),
+        close:  parseFloat(k[4]),
+        volume: parseFloat(k[5]),
+      }));
+
+      allCandles.unshift(...candles);
+
+      // Wenn weniger als limit zurück, sind wir am Anfang
+      if (raw.length < limit) break;
+      // Nächste Seite: endTime = openTime der ältesten Kerze - 1ms
+      endTime = raw[0][0] - 1;
+      // Stopp wenn wir weiter als 2 Jahre zurück sind
+      if (endTime < now - maxLookback) break;
+    }
+
+    // Duplikate entfernen & sortieren
+    const seen = new Set();
+    return allCandles
+      .filter(c => { if (seen.has(c.time)) return false; seen.add(c.time); return true; })
+      .sort((a, b) => a.time - b.time);
   }
 
   // Get klines for a date range (for performance page)

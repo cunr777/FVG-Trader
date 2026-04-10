@@ -143,7 +143,7 @@ const ChartManager = (() => {
 
     try {
       const tfCfg   = CONFIG.TIMEFRAMES[tf];
-      const candles = await Binance.getKlines(symbol, tfCfg.interval, tfCfg.limit);
+      const candles = await Binance.getKlines(symbol, tfCfg.interval);
       allCandles = candles;
 
       candleSeries.setData(candles);

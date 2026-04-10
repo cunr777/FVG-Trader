@@ -185,12 +185,10 @@ const ChartManager = (() => {
     // 3) notFilled — Gap unberührt                 → einfache Gap-Zone
     const resolved  = allFvgs.filter(f => f.filled && f.result !== 'pending');
     const active    = allFvgs.filter(f => f.filled && f.result === 'pending');
-    const notFilled = allFvgs.filter(f => !f.filled);
 
     fvgBoxes = [];
     for (const fvg of resolved)  _drawTradeBox(fvg, true,  false);
     for (const fvg of active)    _drawTradeBox(fvg, false, true);
-    // notFilled: keine Zone zeichnen — nur aktive/abgeschlossene Trades anzeigen
   }
 
   // ── Coordinate Helpers ────────────────────────────────────────
@@ -257,7 +255,7 @@ const ChartManager = (() => {
 
   function _drawTradeBox(fvg, isOld, isActive) {
     const isBull  = fvg.type === 'bull';
-    const alpha   = isOld ? 0.35 : 1.0;
+    const alpha   = isOld ? 0.65 : 1.0;
 
     const yEntry  = _priceY(fvg.entry);
     const ySL     = _priceY(fvg.sl);

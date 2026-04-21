@@ -686,3 +686,72 @@ body.light .ctrl-input[type="date"]::-webkit-calendar-picker-indicator { filter:
 
 /* ─── Scrollbar Global ──────────────────────────────────────── */
 * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+/* ─── Chart Pulse ───────────────────────────────────────────── */
+@keyframes chartPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(38,166,154,0.0); }
+  30%  { box-shadow: 0 0 0 3px rgba(38,166,154,0.55); }
+  100% { box-shadow: 0 0 0 6px rgba(38,166,154,0.0); }
+}
+.chart-pulse { animation: chartPulse 0.6s ease-out forwards; }
+
+/* ─── Order Panel ───────────────────────────────────────────── */
+.order-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  font-size: 12px;
+  animation: opSlideIn 0.3s ease-out;
+}
+@keyframes opSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.op-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.op-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+.op-badge.bull { background: var(--green-dim); color: var(--green); border: 1px solid rgba(38,166,154,0.35); }
+.op-badge.bear { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(239,83,80,0.35); }
+.op-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.op-gap {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.op-levels { display: flex; gap: 20px; }
+.op-row { display: flex; align-items: center; gap: 6px; }
+.op-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  min-width: 28px;
+}
+.op-value { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.op-value.green { color: var(--green); }
+.op-value.red   { color: var(--red); }
+.op-hint { font-size: 10px; color: var(--text-muted); }
+
